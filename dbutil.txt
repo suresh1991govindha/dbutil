@@ -1,0 +1,146 @@
+public class AgricultureBean extends BeanAdapter{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8355289924957145083L;
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public  HashMap getGobarGasPlant(HashMap hshValues) throws EJBException
+	{
+		String strQuery="";
+		ResultSet rs = null;
+		HashMap hshRecord = new HashMap();
+		try
+		{	
+			String appno="";
+			if(appno.equalsIgnoreCase("null") || appno.equalsIgnoreCase(""))
+			{
+				appno = Helper.correctNull((String)hshValues.get("strappno"));
+			}
+			if(appno.equalsIgnoreCase("null") || appno.equalsIgnoreCase(""))
+			{
+				appno = Helper.correctNull((String)hshValues.get("appno"));
+			}
+			strQuery = SQLParser.getSqlQuery("sel_agr_gobargasplant^"+appno);		
+			rs = DBUtils.executeQuery(strQuery);
+			while (rs.next()) 
+			{
+				hshRecord.put("noofbuffaloes",Helper.correctNull((String) rs.getString("noofbuffaloes")));
+				hshRecord.put("noofcows",Helper.correctNull((String) rs.getString("noofcows")));
+				hshRecord.put("totalsize",Helper.correctNull((String) rs.getString("totalsize")));
+				hshRecord.put("cost",Helper.checkDecimal(Helper.correctDouble((String) rs.getString("cost"))));
+				hshRecord.put("location",Helper.correctNull((String) rs.getString("location")));
+			}
+			hshRecord.put("app_no", appno);
+		}
+		catch(Exception ce)
+		{
+			throw new EJBException("Error in getGobarGasPlant "+ce.toString());
+		}
+		finally
+		{
+			try
+			{
+				if(rs != null)
+				{
+					rs.close();
+				}	
+			}
+			catch(Exception cf)
+			{
+				throw new EJBException("Error closing the connection for getGobarGasPlant "+cf.getMessage());
+			}
+		}
+		return hshRecord;
+}
+
+
+
+
+
+
+
+
+CLASS
+
+
+public class Helper {
+	/** This Method for making null values * */
+
+	public static String correctNull(String strNull) {
+		if (strNull == null) {
+			strNull = "";
+		}
+		return strNull.trim();
+	}
+	}
+
+
+
+QUERY
+
+<query code="sel_agr_gobargasplant">
+	select noofbuffaloes,noofcows,totalsize,cost,location from agr_gobargasplant where appno='^'
+</query>
+
+
+
+
+
+CLASS
+
+public class DBUtils {
+
+public static SQLCachedRowSet executeQuery(String strQuery)
+			throws Exception {
+		SQLCachedRowSet crs;
+		Connection conn = null;
+		PreparedStatement statement = null;
+		ResultSet resultset = null;
+		try {
+			try {
+				crs = SQLCachedRowSetFactory.getCachedRowSet();
+			} catch (Exception e) {
+				crs = SQLCachedRowSetFactory.getCachedRowSet();
+			}
+			conn = ConnectionFactory.getConnection();
+			statement = conn.prepareStatement(strQuery);
+			resultset = statement.executeQuery();
+
+			crs.populate(resultset);
+			
+
+		} catch (SQLException e) {
+			System.out.println("SQLException in executeQuery(String strQuery)"
+					+ e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			System.out.println("Exception in executeQuery(String strQuery)"
+					+ e.getMessage());
+			throw e;
+		} finally {
+			try {
+				if (resultset != null) {
+					resultset.close();
+				}
+			} catch (SQLException se) {
+				throw new Exception(se.getMessage());
+			}
+			try {
+				if (statement != null) {
+					statement.close();
+				}
+			} catch (SQLException se) {
+				throw new Exception(se.getMessage());
+			}
+			
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (SQLException se) {
+				throw new Exception(se.getMessage());
+			}
+		}
+		return crs;
+	}}
